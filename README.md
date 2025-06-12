@@ -32,7 +32,7 @@ Cette application permet d'analyser des données de qualité de vie de zones urb
 
 1. **Cloner le projet**
    ```bash
-   git clone <votre-repository-url>
+   git clone https://github.com/AverageCoder69/Projet_KAGGLE
    cd Projet_KAGGLE
    ```
 
@@ -233,26 +233,3 @@ docker system prune -a
 docker-compose up -d
 ```
 
-## 🤝 Contribution
-
-1. 🍴 Forkez le projet
-2. 🌿 Créez une branche feature (`git checkout -b feature/AmazingFeature`)
-3. 💾 Commitez vos changements (`git commit -m 'Add some AmazingFeature'`)
-4. 📤 Poussez vers la branche (`git push origin feature/AmazingFeature`)
-5. 🔄 Ouvrez une Pull Request
-
-## 📄 Licence
-
-Distribué sous licence MIT. Voir `LICENSE` pour plus d'informations.
-
----
-
-## 🙏 Remerciements
-
-- Données de qualité de vie urbaine provenant de diverses sources publiques
-- Interface construite avec PHP, MySQL et Chart.js
-- Containerisation Docker pour un déploiement simplifié
-
----
-
-**🚀 Prêt en 3 commandes - Développé avec ❤️ pour l'analyse de données urbaines**
