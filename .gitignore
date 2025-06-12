@@ -1,0 +1,68 @@
+# Environment variables
+.env
+
+# Docker volumes and data
+/mysql-data/
+/db_data/
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Operating system files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# PHP specific
+vendor/
+composer.lock
+
+# Uploaded files (if you want to exclude user uploads)
+uploads/
+*.csv
+
+# Backup files
+*.bak
+*.backup
+
+# Cache and session files
+cache/
+sessions/
+tmp/
+
+# Docker specific
+.dockerignore
+
+# Node modules (if any)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Optional: Exclude large CSV files (uncomment if needed)
+# *.csv
+# uaScoresDataFrame*.csv

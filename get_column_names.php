@@ -1,10 +1,10 @@
 <?php
+require_once 'config.php';
 
-$conn = mysqli_connect("localhost", "Test", "Test1", "isfa");
-
-// Vérifier la connexion
-if(!$conn){
-    die("Connection failed: ".mysqli_connect_error());
+try {
+    $conn = getDatabaseConnection();
+} catch (Exception $e) {
+    die("Connection failed: " . $e->getMessage());
 }
 
 if (isset($_POST['tableName'])) {
@@ -18,6 +18,6 @@ if (isset($_POST['tableName'])) {
     }
 }
 
-mysqli_close($conn);
+closeConnection($conn);
 
 ?>

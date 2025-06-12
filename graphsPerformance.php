@@ -1,88 +1,130 @@
 <?php
+require_once 'config.php';
+
 $tableName = $_GET['tableName'];
 $numSimulations = $_GET['numSimulations'] ?? 10; // Nombre de simulations (par défaut : 10)
 
-$conn = mysqli_connect("localhost", "Test", "Test1", "isfa");
-if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
+try {
+    $conn = getDatabaseConnection();
+} catch (Exception $e) {
+    die("Connection failed: " . $e->getMessage());
 }
 
-// Récupérer les noms des colonnes de la table
-$query = "SHOW COLUMNS FROM $tableName";
+// Récupérer les noms des colonnes et leurs types
+$query = "SHOW COLUMNS FROM `$tableName`";
 $result = mysqli_query($conn, $query);
 $columns = array();
+$numericColumns = array();
+$textColumns = array();
+
 while ($row = mysqli_fetch_assoc($result)) {
     $columns[] = $row['Field'];
+    $type = strtolower($row['Type']);
+    
+    if (strpos($type, 'decimal') !== false || strpos($type, 'int') !== false || strpos($type, 'float') !== false) {
+        $numericColumns[] = $row['Field'];
+    } else {
+        $textColumns[] = $row['Field'];
+    }
 }
 
 $simulationResults = array();
 
+// Obtenir un échantillon de données réelles pour les tests
+$sampleQuery = "SELECT * FROM `$tableName` LIMIT 5";
+$sampleResult = mysqli_query($conn, $sampleQuery);
+$sampleData = [];
+while ($row = mysqli_fetch_assoc($sampleResult)) {
+    $sampleData[] = $row;
+}
+
 for ($i = 0; $i < $numSimulations; $i++) {
-    // Sélectionner des colonnes aléatoires pour les requêtes
-    do {
-        $randomColumn1 = mysqli_real_escape_string($conn, $columns[array_rand($columns)]);
-        $randomColumn2 = mysqli_real_escape_string($conn, $columns[array_rand($columns)]);
-    } while ($randomColumn1 === $randomColumn2);
 
-    // Démarrer une transaction
-    mysqli_begin_transaction($conn);
-
-    // Temps d'exécution de la requête SELECT
+    // Temps d'exécution de la requête SELECT complète
     $startTime = microtime(true);
-    $query = "SELECT * FROM $tableName";
+    $query = "SELECT * FROM `$tableName`";
     $result = mysqli_query($conn, $query);
     $endTime = microtime(true);
     $selectTime = ($endTime - $startTime) * 1000;
-    $simulationResults['select'][] = $selectTime;
+    $simulationResults['select_all'][] = $selectTime;
 
-    // Temps d'exécution de la requête INSERT
+    // Temps d'exécution de la requête SELECT avec LIMIT
     $startTime = microtime(true);
-    $query = "INSERT INTO $tableName (`$randomColumn1`, `$randomColumn2`) VALUES ('value1', 'value2')";
-    mysqli_query($conn, $query);
-    $endTime = microtime(true);
-    $insertTime = ($endTime - $startTime) * 1000;
-    $simulationResults['insert'][] = $insertTime;
-
-    // Temps d'exécution de la requête UPDATE
-    $startTime = microtime(true);
-    $query = "UPDATE $tableName SET `$randomColumn1` = 'new_value' WHERE id = 1";
-    mysqli_query($conn, $query);
-    $endTime = microtime(true);
-    $updateTime = ($endTime - $startTime) * 1000;
-    $simulationResults['update'][] = $updateTime;
-
-    // Temps d'exécution de la requête DELETE
-    $startTime = microtime(true);
-    $query = "DELETE FROM $tableName WHERE id = 1";
-    mysqli_query($conn, $query);
-    $endTime = microtime(true);
-    $deleteTime = ($endTime - $startTime) * 1000;
-    $simulationResults['delete'][] = $deleteTime;
-
-    // Temps d'exécution de la requête avec une condition
-    $startTime = microtime(true);
-    $query = "SELECT * FROM $tableName WHERE `$randomColumn1` = 'value'";
+    $query = "SELECT * FROM `$tableName` LIMIT 100";
     $result = mysqli_query($conn, $query);
     $endTime = microtime(true);
-    $conditionTime = ($endTime - $startTime) * 1000;
-    $simulationResults['condition'][] = $conditionTime;
-    
-    // Annuler la transaction
-    mysqli_rollback($conn);
+    $selectLimitTime = ($endTime - $startTime) * 1000;
+    $simulationResults['select_limit'][] = $selectLimitTime;
+
+    // Temps d'exécution de la requête avec WHERE sur colonne numérique
+    if (!empty($numericColumns)) {
+        $randomNumCol = $numericColumns[array_rand($numericColumns)];
+        $startTime = microtime(true);
+        $query = "SELECT * FROM `$tableName` WHERE `$randomNumCol` > 5";
+        $result = mysqli_query($conn, $query);
+        $endTime = microtime(true);
+        $whereNumTime = ($endTime - $startTime) * 1000;
+        $simulationResults['where_numeric'][] = $whereNumTime;
+    }
+
+    // Temps d'exécution de la requête avec WHERE sur colonne texte
+    if (!empty($textColumns)) {
+        $randomTextCol = $textColumns[array_rand($textColumns)];
+        $startTime = microtime(true);
+        $query = "SELECT * FROM `$tableName` WHERE `$randomTextCol` LIKE '%a%'";
+        $result = mysqli_query($conn, $query);
+        $endTime = microtime(true);
+        $whereTextTime = ($endTime - $startTime) * 1000;
+        $simulationResults['where_text'][] = $whereTextTime;
+    }
+
+    // Temps d'exécution de la requête COUNT
+    $startTime = microtime(true);
+    $query = "SELECT COUNT(*) FROM `$tableName`";
+    $result = mysqli_query($conn, $query);
+    $endTime = microtime(true);
+    $countTime = ($endTime - $startTime) * 1000;
+    $simulationResults['count'][] = $countTime;
+
+    // Temps d'exécution de la requête AVG sur colonne numérique
+    if (!empty($numericColumns)) {
+        $randomNumCol = $numericColumns[array_rand($numericColumns)];
+        $startTime = microtime(true);
+        $query = "SELECT AVG(`$randomNumCol`) FROM `$tableName`";
+        $result = mysqli_query($conn, $query);
+        $endTime = microtime(true);
+        $avgTime = ($endTime - $startTime) * 1000;
+        $simulationResults['avg'][] = $avgTime;
+    }
 }
 
-mysqli_close($conn);
+closeConnection($conn);
 ?>
 
 
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Résultats de la simulation</title>
+    <title>Tests de Performance - <?php echo htmlspecialchars($tableName); ?></title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .info { background: #f0f8ff; padding: 10px; border-radius: 5px; margin-bottom: 20px; }
+        .chart-container { width: 100%; height: 400px; margin: 20px 0; }
+    </style>
 </head>
 <body>
-    <canvas id="simulationChart"></canvas>
+    <h1>Tests de Performance</h1>
+    <div class="info">
+        <strong>Table testée:</strong> <?php echo htmlspecialchars($tableName); ?><br>
+        <strong>Nombre de simulations:</strong> <?php echo $numSimulations; ?><br>
+        <strong>Colonnes numériques:</strong> <?php echo implode(', ', $numericColumns); ?><br>
+        <strong>Colonnes texte:</strong> <?php echo implode(', ', $textColumns); ?>
+    </div>
+    
+    <div class="chart-container">
+        <canvas id="simulationChart"></canvas>
+    </div>
 
     <script>
         var simulationData = <?php echo json_encode($simulationResults); ?>;
@@ -92,32 +134,38 @@ mysqli_close($conn);
             labels: labels,
             datasets: [
                 {
-                    label: 'SELECT',
-                    data: simulationData.select,
+                    label: 'SELECT ALL',
+                    data: simulationData.select_all,
                     borderColor: 'blue',
                     fill: false
                 },
                 {
-                    label: 'INSERT',
-                    data: simulationData.insert,
+                    label: 'SELECT LIMIT 100',
+                    data: simulationData.select_limit,
+                    borderColor: 'lightblue',
+                    fill: false
+                },
+                {
+                    label: 'WHERE Numérique',
+                    data: simulationData.where_numeric,
                     borderColor: 'green',
                     fill: false
                 },
                 {
-                    label: 'UPDATE',
-                    data: simulationData.update,
+                    label: 'WHERE Texte',
+                    data: simulationData.where_text,
                     borderColor: 'orange',
                     fill: false
                 },
                 {
-                    label: 'DELETE',
-                    data: simulationData.delete,
+                    label: 'COUNT',
+                    data: simulationData.count,
                     borderColor: 'red',
                     fill: false
                 },
                 {
-                    label: 'Condition',
-                    data: simulationData.condition,
+                    label: 'AVG',
+                    data: simulationData.avg,
                     borderColor: 'purple',
                     fill: false
                 }

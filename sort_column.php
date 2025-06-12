@@ -1,8 +1,11 @@
 <?php
-$conn = mysqli_connect("localhost", "Test", "Test1", "isfa");
+require_once 'config.php';
 
-if(!$conn){
-    echo "Connection failed: ".mysqli_connect_error();
+try {
+    $conn = getDatabaseConnection();
+} catch (Exception $e) {
+    echo "Connection failed: " . $e->getMessage();
+    exit;
 }
 
 $tableName = $_POST['tableName'];
@@ -34,5 +37,5 @@ if (mysqli_num_rows($result) > 0) {
     echo "0 results";
 }
 
-mysqli_close($conn);
+closeConnection($conn);
 ?>

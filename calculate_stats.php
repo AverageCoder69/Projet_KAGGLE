@@ -1,10 +1,11 @@
 <?php
+require_once 'config.php';
 
-$conn = mysqli_connect("localhost", "Test", "Test1", "isfa");
-
-// Vérifier la connexion
-if (!$conn) {
-    echo "Connection failed: ".mysqli_connect_error();
+try {
+    $conn = getDatabaseConnection();
+} catch (Exception $e) {
+    echo "Connection failed: " . $e->getMessage();
+    exit;
 }
 
 if (isset($_POST['tableName'], $_POST['columnName'], $_POST['statType'])) {
@@ -57,6 +58,6 @@ if (isset($_POST['tableName'], $_POST['columnName'], $_POST['statType'])) {
     }
 }
 
-mysqli_close($conn);
+closeConnection($conn);
 
 ?>

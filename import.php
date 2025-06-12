@@ -1,10 +1,10 @@
 <?php
+require_once 'config.php';
 
-$conn = mysqli_connect("localhost", "Test", "Test1", "isfa");
-
-// Vérifiez la connexion
-if (!$conn) {
-    die("Connection failed: " . mysqli_error($conn));
+try {
+    $conn = getDatabaseConnection();
+} catch (Exception $e) {
+    die("Connection failed: " . $e->getMessage());
 }
 
 if (isset($_FILES['fileToUpload']) && $_FILES['fileToUpload']['error'] == UPLOAD_ERR_OK && is_uploaded_file($_FILES['fileToUpload']['tmp_name'])) {
@@ -66,5 +66,5 @@ if (isset($_FILES['fileToUpload']) && $_FILES['fileToUpload']['error'] == UPLOAD
     echo "Failed to import file.";
 }
 
-mysqli_close($conn);
+closeConnection($conn);
 ?>

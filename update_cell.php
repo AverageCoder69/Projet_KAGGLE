@@ -1,8 +1,10 @@
 <?php
-$conn = mysqli_connect("localhost", "Test", "Test1", "isfa");
+require_once 'config.php';
 
-if (!$conn) {
-    echo "Connection failed: " . mysqli_connect_error();
+try {
+    $conn = getDatabaseConnection();
+} catch (Exception $e) {
+    echo "Connection failed: " . $e->getMessage();
     exit();
 }
 
@@ -18,7 +20,7 @@ if (isset($_POST['rowId']) && isset($_POST['newValue']) && isset($_POST['columnN
 
     if (mysqli_num_rows($checkColumnResult) > 0) {
         // La colonne existe, exécuter la requête de mise à jour
-        $sql = "UPDATE $tableName SET $columnName = ? WHERE id = ?";
+        $sql = "UPDATE `$tableName` SET `$columnName` = ? WHERE `ID` = ?";
         $stmt = mysqli_prepare($conn, $sql);
         mysqli_stmt_bind_param($stmt, 'si', $newValue, $rowId);
 
@@ -32,5 +34,5 @@ if (isset($_POST['rowId']) && isset($_POST['newValue']) && isset($_POST['columnN
     }
 }
 
-mysqli_close($conn);
+closeConnection($conn);
 ?>

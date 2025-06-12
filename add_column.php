@@ -1,8 +1,11 @@
 <?php
-$conn = mysqli_connect("localhost", "Test", "Test1", "isfa");
+require_once 'config.php';
 
-if(!$conn){
-    echo "Connection failed: ".mysqli_connect_error();
+try {
+    $conn = getDatabaseConnection();
+} catch (Exception $e) {
+    echo "Connection failed: " . $e->getMessage();
+    exit;
 }
 
 if (isset($_POST['tableName']) && isset($_POST['columnName'])) {
@@ -31,5 +34,5 @@ if (isset($_POST['tableName']) && isset($_POST['columnName'])) {
     }
 }
 
-mysqli_close($conn);
+closeConnection($conn);
 ?>

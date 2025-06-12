@@ -1,9 +1,10 @@
 <?php
-$conn = mysqli_connect("localhost", "Test", "Test1", "isfa");
+require_once 'config.php';
 
-// Vérifier la connexion
-if(!$conn){
-    die("Connection failed: ".mysqli_connect_error());
+try {
+    $conn = getDatabaseConnection();
+} catch (Exception $e) {
+    die("Connection failed: " . $e->getMessage());
 }
 
 // Récupérez le nom de la table à partir de la requête GET et échappez-le pour prévenir l'injection SQL

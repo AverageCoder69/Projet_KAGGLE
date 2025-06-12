@@ -1,32 +1,29 @@
-<?php
-session_start();
-
-if (!isset($_SESSION['intro_viewed'])) {
-    $_SESSION['intro_viewed'] = true;
-    header('Location: intro.html');
-    exit();
-}
-?>
 
 <?php
-$conn = mysqli_connect("localhost", "Test", "Test1", "isfa");
+require_once 'config.php';
 
-// Vérifier la connexion
-if(!$conn){
-    echo "Connection failed: ".mysqli_connect_error();
+try {
+    $conn = getDatabaseConnection();
+} catch (Exception $e) {
+    echo "Connection failed: " . $e->getMessage();
+    exit;
 }
 
-// Récupérer les tous les tables
+// Récupérer seulement les tables uascores
 $result = mysqli_query($conn, "SHOW TABLES");
 $tables = [];
 
 if (mysqli_num_rows($result) > 0) {
     while($row = mysqli_fetch_row($result)) {
-        $tables[] = $row[0];
+        $tableName = $row[0];
+        // Filtrer pour ne garder que les tables uascores
+        if (strpos($tableName, 'uascores') === 0) {
+            $tables[] = $tableName;
+        }
     }
 }
 
-mysqli_close($conn);
+closeConnection($conn);
 ?>
 
 <!DOCTYPE html>
@@ -95,7 +92,7 @@ mysqli_close($conn);
             if (selectedTable) {
                 loadTableData();
             } else {
-                $('#tableData').html('<p>Veuillez sélectionner une table dans la liste.</p>');
+                $('#tableData').html('<p>Veuillez choisir une table dans la liste en haut à gauche s\'il vous plaît.</p>');
             }
         });
 
@@ -122,14 +119,14 @@ mysqli_close($conn);
             });
         });
     } else {
-        $('#tableData').html('<p>Veuillez sélectionner une table dans la liste.</p>');
+        $('#tableData').html('<p>Veuillez choisir une table dans la liste en haut à gauche s\'il vous plaît.</p>');
     }
 }
 
         function updateCell() {
     var cellId = $(this).attr('id');
     var newValue = $(this).text();
-    var parts = cellId.split('_');
+    var parts = cellId.split('||');
     var rowId = parts[1];
     var columnName = parts[2];
     var tableName = document.getElementById("tableDropdown").value;
